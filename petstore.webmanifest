@@ -1,0 +1,16 @@
+{
+    "name":"After School Club",
+    "short_name":"Afterschool",
+    "description":"After school product page",
+    "icons":[
+        {
+            "src":"images/math.png",
+            "sizes":"512x512",
+            "type":"image/png"
+        }
+    ],
+"start_url":"index.html",
+"display":"fullscreen",
+"background_color":"#B12A34"
+
+}

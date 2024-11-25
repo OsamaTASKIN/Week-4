@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    />
+    <link rel="manifest" href="petstore.webmanifest" />
+    <script src="product.js"></script>
+    <title>After School Club</title>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="header-container">
+        <h1 v-text="sitename"></h1>
+
+        <!-- Search Input -->
+        <input
+          type="text"
+          placeholder="Search products..."
+          v-model="searchQuery"
+        />
+
+        <!-- Sorting Options -->
+        <select v-model="sortOrder">
+          <option value="asc">Sort by Price: Low to High</option>
+          <option value="desc">Sort by Price: High to Low</option>
+          <option value="stock-asc">Sort by Stock: Low to High</option>
+          <option value="stock-desc">Sort by Stock: High to Low</option>
+        </select>
+
+        <!-- Location Filter -->
+        <select v-model="selectedLocation">
+          <option value="">All Locations</option>
+          <option v-for="location in uniqueLocations" :value="location">
+            {{ location }}
+          </option>
+        </select>
+
+        <button class="checkout-button" v-on:click="showCheckout">
+          <i class="fa-solid fa-cart-shopping"></i> Checkout ({{ cartitemcount
+          }})
+        </button>
+      </div>
+
+      <main v-if="!checkoutPage">
+        <div
+          v-for="product in filteredProducts"
+          :key="product.id"
+          class="product"
+        >
+          <h2 v-text="product.title"></h2>
+
+          <figure>
+            <img class="image-1" :src="product.image" />
+          </figure>
+
+          <h2 v-text="product.subject"></h2>
+          <p v-text="'Location: ' + product.location"></p>
+          <p>Price: {{ product.price }}</p>
+          <p>Available Items: {{ product.AvailableInventory }}</p>
+          <button
+            class="addToCart"
+            v-on:click="addToCart(product)"
+            v-if="canAddToCart(product)"
+          >
+            Add to cart
+          </button>
+          <button disabled v-else>Add to cart</button>
+          <span v-if="product.AvailableInventory - cartCount(product.id) <= 0"
+            >All out!</span
+          >
+          <span
+            v-else-if="product.AvailableInventory - cartCount(product.id) < 5"
+            >Only {{ product.AvailableInventory - cartCount(product.id) }}
+            left!</span
+          >
+          <span v-else>Buy Now!</span>
+          <div>
+            <span>Reviews:</span>
+            <span v-for="n in product.rating" :key="'star-' + n">★</span>
+            <span v-for="n in 5 - product.rating" :key="'empty-' + n">☆</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Checkout Div -->
+      <div v-if="checkoutPage" class="checkout-div">
+        <h2>Checkout Page</h2>
+
+        <p>
+          <strong>First Name:</strong>
+          <input v-model.trim="order.firstName" />
+        </p>
+        <p>
+          <strong>Last Name:</strong>
+          <input v-model.trim="order.lastName" />
+        </p>
+        <p>
+          <strong>Address:</strong>
+          <input v-model="order.address" />
+        </p>
+        <p>
+          <strong>City:</strong>
+          <input v-model="order.city" />
+        </p>
+        <p>
+          <strong>State:</strong>
+          <select v-model="order.state">
+            <option disabled value="">Select a state</option>
+            <option v-for="(stateName, stateCode) in states" :value="stateCode">
+              {{ stateName }}
+            </option>
+          </select>
+        </p>
+        <p>
+          <strong>Zip/Postal Code:</strong>
+          <input v-model.number="order.zip" type="number" />
+        </p>
+        <p>
+          <strong>Phone:</strong>
+          <input v-model.number="order.phone" type="number" />
+        </p>
+        <p>
+          <input type="checkbox" id="gift" v-model="order.gift" />
+          <label for="gift">Ship as Gift?</label>
+        </p>
+        <p>
+          <input type="radio" id="home" value="Home" v-model="order.method" />
+          <label for="home">Home</label>
+          <input
+            type="radio"
+            id="business"
+            value="Business"
+            v-model="order.method"
+          />
+          <label for="business">Business</label>
+        </p>
+
+        <h2>Order Information</h2>
+        <p>Product Name: {{ selectedProduct?.subject }}</p>
+        <p>First Name: {{ order.firstName }}</p>
+        <p>Last Name: {{ order.lastName }}</p>
+        <p>Address: {{ order.address }}</p>
+        <p>City: {{ order.city }}</p>
+        <p>State: {{ order.state }}</p>
+        <p>Zip/Postal Code: {{ order.zip }}</p>
+        <p>Gift: {{ order.gift ? "Yes" : "No" }}</p>
+        <p>Method: {{ order.method }}</p>
+        <p>Phone: {{ order.phone }}</p>
+
+        <button class="placeOrder" v-on:click="submitform">Place Order</button>
+        <button class="goBack" v-on:click="goBack">Back to Products</button>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      var AfterSchoolClub = new Vue({
+        el: "#app",
+        data: {
+          sitename: "After School Club",
+          products: products || [], // Fallback to an empty array if products is undefined
+          states: {
+            AL: "Alabama",
+            AZ: "Arizona",
+            CA: "California",
+            NV: "Nevada",
+          },
+          cart: [],
+          checkoutPage: false,
+          order: {
+            firstName: "",
+            lastName: "",
+            address: "",
+            city: "",
+            state: "",
+            zip: "",
+            method: "",
+            gift: false,
+            phone: "",
+          },
+          searchQuery: "",
+          sortOrder: "asc",
+          selectedLocation: "",
+        },
+        computed: {
+          cartitemcount() {
+            return this.cart.length;
+          },
+          filteredProducts() {
+            let filtered = this.products.filter((product) => {
+              return (
+                (!this.searchQuery ||
+                  product.title
+                    .toLowerCase()
+                    .includes(this.searchQuery.toLowerCase())) &&
+                (!this.selectedLocation ||
+                  product.location === this.selectedLocation)
+              );
+            });
+
+            // Sorting logic
+            const sortFunctions = {
+              asc: (a, b) => a.price - b.price,
+              desc: (a, b) => b.price - a.price,
+              "stock-asc": (a, b) =>
+                a.AvailableInventory - b.AvailableInventory,
+              "stock-desc": (a, b) =>
+                b.AvailableInventory - a.AvailableInventory,
+            };
+            return filtered.sort(sortFunctions[this.sortOrder]);
+          },
+          uniqueLocations() {
+            return [...new Set(this.products.map((p) => p.location))];
+          },
+        },
+        methods: {
+          addToCart(product) {
+            if (this.canAddToCart(product)) {
+              this.cart.push(product.id);
+              product.AvailableInventory -= 1;
+            }
+          },
+          canAddToCart(product) {
+            return product.AvailableInventory > 0;
+          },
+          cartCount(id) {
+            return this.cart.filter((itemId) => itemId === id).length;
+          },
+          showCheckout() {
+            this.checkoutPage = true;
+          },
+          submitform() {
+            alert("Order Submitted");
+          },
+          goBack() {
+            this.checkoutPage = false;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

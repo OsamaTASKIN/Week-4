@@ -1,0 +1,65 @@
+* {
+  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+}
+
+.image-1 {
+  height: 150px;
+  width: 150px;
+}
+
+main {
+  text-align: center;
+}
+
+h1 {
+  text-align: center;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+}
+
+h1 {
+  margin: 0;
+}
+
+.checkout-button,
+.addToCart,
+.goBack,
+.placeOrder {
+  margin-left: auto;
+  padding: 10px 20px;
+  background-color: #4756ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.checkout-button i {
+  margin-right: 5px;
+}
+
+:disabled {
+  margin-left: auto;
+  padding: 10px 20px;
+  background-color: #b3b4bb;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.placeOrder {
+  margin-left: auto;
+  padding: 10px 20px;
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
